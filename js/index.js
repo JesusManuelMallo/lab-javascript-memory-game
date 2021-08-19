@@ -26,8 +26,9 @@ const cards = [
 ];
 
 const memoryGame = new MemoryGame(cards);
-
+let blockedBoard = false;
 window.addEventListener('load', (event) => {
+  memoryGame.shuffleCards();
   let html = '';
   memoryGame.cards.forEach((pic) => {
     html += `
@@ -44,20 +45,40 @@ window.addEventListener('load', (event) => {
   // Bind the click event of each element to a function
   document.querySelectorAll('.card').forEach((card) => {
     card.addEventListener('click', (event) => {
-      if (memoryGame.pickedCards.length < 2) {
-        card.classList.add('turned');
+      let elementPairsClicked = document.querySelector('#pairs-clicked');
+      let elementPairsGuessed = document.querySelector('#pairs-guessed');
+
+      if (blockedBoard) {
+        return;
       }
-      memoryGame.pickedCards.push(card);
+
+      if (memoryGame.pickedCards.length < 2) {
+        card.className = 'card turned';
+        memoryGame.pickedCards.push(card);
+      }
 
       if (memoryGame.pickedCards.length === 2) {
-        let card1 = memoryGame.pickedCards[0].getAttribute('data-card-name');
-        let card2 = memoryGame.pickedCards[1].getAttribute('data-card-name');
+        let card1Name =
+          memoryGame.pickedCards[0].getAttribute('data-card-name');
 
-        pairsGuessed = memoryGame.checkIfPair(card1, card2);
-      } else if (!pairsGuessed) {
-        memoryGame.pickedCards[0].classList.remove('turned');
-        memoryGame.pickedCards[1].classList.remove('turned');
-        memoryGame.pickedCards = [];
+        let card2NAme =
+          memoryGame.pickedCards[1].getAttribute('data-card-name');
+
+        blockedBoard = true;
+        if (memoryGame.checkIfPair(card1Name, card2NAme)) {
+          memoryGame.pickedCards[0].classList.add('blocked');
+          memoryGame.pickedCards[1].classList.add('blocked');
+          memoryGame.pickedCards = [];
+        } else {
+          setTimeout(() => {
+            memoryGame.pickedCards[0].classList.remove('turned');
+            memoryGame.pickedCards[1].classList.remove('turned');
+            memoryGame.pickedCards = [];
+            blockedBoard = false;
+          }, 500);
+        }
+        elementPairsClicked.innerText = memoryGame.pairsClicked;
+        elementPairsGuessed.innerText = memoryGame.pairsGuessed;
       }
 
       console.log(card);
